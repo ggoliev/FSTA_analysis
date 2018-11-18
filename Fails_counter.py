@@ -8,7 +8,7 @@ def check_fail_folders(path: str, test: str) -> dict:
     """test must be in this format: '\Smoke*'
     the cycle is looking for Fail folders and for SmokeTestSummary*.csv file
     """
-    tests_failed: list = []  # list of all failed tests
+    tests_failed = []  # list of all failed tests
     for f in glob.glob(path+'\*Fail*'+test):
         with open(f) as fi:
             reader = csv.reader(fi)  # reads the file as comma separated values in line
@@ -18,17 +18,17 @@ def check_fail_folders(path: str, test: str) -> dict:
     return dict(Counter(tests_failed))
 
 
-st_folder: str = os.path.expanduser(r'~\Desktop\RovalSimplifier\SmokeTestAutomation\Output\SmokeTestSummary')
+st_folder = os.path.expanduser(r'~\Desktop\RovalSimplifier\SmokeTestAutomation\Output\SmokeTestSummary')
 
-result: dict = check_fail_folders(st_folder, '\Smoke*')
-folders_total: int = len(next(os.walk(st_folder))[1])  # to add exception for an empty folder
-folders_for_file: list = ['Total folders:', folders_total]
+result = check_fail_folders(st_folder, '\Smoke*')
+folders_total = len(next(os.walk(st_folder))[1])  # to add exception for an empty folder
+folders_for_file = ['Total folders:', folders_total]
 
 with open('Result.csv', mode='w', newline='') as file:
     file_writer = csv.writer(file, delimiter=',')
     file_writer.writerow(folders_for_file)
     for k, v in result.items():
-        temp: list = [k, v]
+        temp = [k, v]
         file_writer.writerow(temp)
 
 print(folders_for_file)
