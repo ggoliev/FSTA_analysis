@@ -3,8 +3,10 @@ import csv
 from collections import Counter
 import os
 
+
+# adapted for Python 3.4: without type hinting
 smoke_test_summary_folder = os.path.expanduser(
-    r'~\Desktop\RovalSimplifier\SmokeTestAutomation\Output\SmokeTestSummary')
+    r'~\Desktop\RovalSimplifier\SmokeTestAutomation\Output\SmokeTestSummary')  #TODO to check with OneCoreSmokeTest
 fail_test_result_file_name = 'fail_test_result.csv'
 
 
@@ -12,26 +14,31 @@ def count_fail_tests(path_to_checked_folder: str, file_name_mask: str) -> dict:
     """The function is looking for folders with 'Fail' in name,
     open files by mask and search line with test status 'Fail'
     :param path_to_checked_folder: str. The full path to Summary folder
-    :param file_name_mask: str. Must be in this format: '\Smoke*'
+    :param file_name_mask: str. Must be in this format: '\Smoke*' TODO Leave only test name (Smoke, OneCore, OfflRegr)
     :return: dict. Key - number of test, value - sum of failed tests
     """
+
     tests_failed = []  # list of all failed tests
     for file_by_mask in glob.glob(path_to_checked_folder+'\*Fail*'+file_name_mask):
         with open(file_by_mask) as f:
             reader = csv.reader(f)  # reads the file as comma separated values in line
             for line in reader:  # the cycle is looking for line with test status failed
-                if 'Fail' in line:  # Add exception if there isn't fail line in file (test finished incorrectly)
+                if 'Fail' in line:
                     tests_failed.append(line[0])  # if exists - adds number (only) of test to the "tests_failed" list
     return dict(Counter(tests_failed))
 
 
-def count_total_folders(path_to_folder: str) -> list: # Add exception for an empty  Summary folder
+def count_total_folders(path_to_folder: str) -> list:  # TODO Add exception for an empty  Summary folder
     """ Count all (passed, failed, unfinished) folders in SmokeTest (etc) Summary folder    
     :param path_to_folder: string with the path to Summary folder
     :return: list of 'Total folders', number
     """
-    total = len(next(os.walk(path_to_folder))[1])
-    return ['Total folders', total]
+
+    try:
+        total = len(next(os.walk(path_to_folder))[1])
+        return ['Total folders', total]
+    except StopIteration:
+        return ['Total folders', 'empty']
 
 
 def write_result_file(file_name: str, total_folders: list, failed_test: dict) -> None:
@@ -41,6 +48,7 @@ def write_result_file(file_name: str, total_folders: list, failed_test: dict) ->
     :param failed_test: dict. The result of count_fail_tests function.
     :return: None. Create csv file in the folder with this script
     """
+
     with open(file_name, mode='w', newline='') as file:
         file_writer = csv.writer(file, delimiter=',')
         file_writer.writerow(total_folders)
