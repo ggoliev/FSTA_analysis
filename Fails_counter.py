@@ -1,12 +1,11 @@
-import glob
 import csv
-from collections import Counter
+import glob
 import os
-
+from collections import Counter
 
 # adapted for Python 3.4: without type hinting
 smoke_test_summary_folder = os.path.expanduser(
-    r'~\Desktop\RovalSimplifier\SmokeTestAutomation\Output\SmokeTestSummary')  #TODO to check with OneCoreSmokeTest
+    r'~\Desktop\RovalSimplifier\SmokeTestAutomation\Output\SmokeTestSummary')  # TODO to check with OneCoreSmokeTest
 fail_test_result_file_name = 'fail_test_result.csv'
 
 
@@ -19,23 +18,27 @@ def count_fail_tests(path_to_checked_folder: str, file_name_mask: str) -> dict:
     """
 
     tests_failed = []  # list of all failed tests
-    for file_by_mask in glob.glob(path_to_checked_folder+'\*Fail*'+file_name_mask):
+    for file_by_mask in glob.glob(path_to_checked_folder+r'\*Fail*'+file_name_mask):
         with open(file_by_mask) as f:
             reader = csv.reader(f)  # reads the file as comma separated values in line
-            for line in reader:  # the cycle is looking for line with test status failed
-                if 'Fail' in line:
-                    tests_failed.append(line[0])  # if exists - adds number (only) of test to the "tests_failed" list
-    return dict(Counter(tests_failed))
+            try:
+                for line in reader:  # the cycle is looking for line with test status failed
+                    if 'Fail' in line:
+                        tests_failed.append(line[0])  # if exists - adds number (only) of test to the "tests_failed" list
+            except csv.Error:  # If the file is created not correctly, there is an error 'line contains NULL byte'
+                print('One of files contains NULL byte and isn\'t counted')  # Todo May be to add it to report
+    dict_with_fails = dict(Counter(tests_failed))
+    return dict_with_fails
 
 
-def count_total_folders(path_to_folder: str) -> list:  # TODO Add exception for an empty  Summary folder
+def count_total_folders(path_to_folder: str) -> list:
     """ Count all (passed, failed, unfinished) folders in SmokeTest (etc) Summary folder    
     :param path_to_folder: string with the path to Summary folder
     :return: list of 'Total folders', number
     """
 
     try:
-        total = len(next(os.walk(path_to_folder))[1])
+        total = len(os.listdir(path_to_folder))
         return ['Total folders', total]
     except StopIteration:
         return ['Total folders', 'empty']
@@ -57,9 +60,11 @@ def write_result_file(file_name: str, total_folders: list, failed_test: dict) ->
             file_writer.writerow(test_number_and_fails)
 
 
-fail_test_result = count_fail_tests(smoke_test_summary_folder, '\Smoke*')
+fail_test_result: dict = count_fail_tests(smoke_test_summary_folder, r'\Smoke*')
+# Intermediate variable with result of function. Just to do help the understanding and visualisation
+
 total_folders_result = count_total_folders(smoke_test_summary_folder)
-write_result_file(fail_test_result_file_name,total_folders_result,fail_test_result)
+write_result_file(fail_test_result_file_name, total_folders_result, fail_test_result)
 
 
 print('Print for debugging only! Done.')
